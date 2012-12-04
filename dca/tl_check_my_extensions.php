@@ -30,7 +30,7 @@ $GLOBALS['TL_DCA']['tl_check_my_extensions'] = array(
 	),
 
 	// Palettes
-	'palettes' => array('default' => '{areaConfig},checkModule'),
+	'palettes' => array('default' => '{areaConfig},checkModule,checkTypes'),
 
 	// Fields
 	'fields' => array(
@@ -45,7 +45,7 @@ $GLOBALS['TL_DCA']['tl_check_my_extensions'] = array(
 		),
 		
 		'checkTypes' => array(
-			'label' => &$GLOBALS['TL_LANG']['tl_check_my_extensions']['checkModule'],
+			'label' => &$GLOBALS['TL_LANG']['tl_check_my_extensions']['checkTypes'],
 			'inputType' => 'checkbox',
 			'options' => array(
 				'REPOSITORY' => 'Repository',
@@ -54,11 +54,12 @@ $GLOBALS['TL_DCA']['tl_check_my_extensions'] = array(
 				'TL_FFL' => 'Frontend formularfields',
 				'FE_MOD' => 'Frontend modules',
 				'TL_PTY' => 'Page types',
+				'TEMPLATES' => 'Template usage',
 			),
 			'eval' => array(
 				'multiple' => true
 			),
-			'addSubmit' => false
+			'addSubmit' => true
 		),
 		
 		'modulesConfigured' => array(
@@ -82,6 +83,7 @@ class tl_check_my_extensions extends Backend
 
 	public function onload_callback(DataContainer $dc)
 	{
+	
 
 		$sessionData = $this -> Session -> getData();
 
@@ -94,11 +96,154 @@ class tl_check_my_extensions extends Backend
 		
 
 		$objCheck = new OrphanedModules();
-		//$arrData['frontend'] = $objCheck->checkModule("frontend");
 		
-		//$arrData['xgrind'] = $objCheck->checkModule("xgrind");
 		
 		$arrCheckModules = $sessionData['checkmyextensions']['checkModule'];
+		
+		if (in_array("TEMPLATES", $sessionData['checkmyextensions']["checkTypes"]))
+		{
+		
+		
+			$arrBELinks = array(
+				'tl_layout'	=> 'contao/main.php?do=themes&table=tl_layout&act=edit&id=%s',
+				'tl_content'	=> 'contao/main.php?do=article&table=tl_content&act=edit&id=%s',
+				'tl_module'	=> 'contao/main.php?do=themes&table=tl_module&act=edit&id=%s',
+				'tl_page' => 'contao/main.php?do=page&act=edit&id=%s',
+				
+			);
+		
+			$strImageNonExist = '<td><img src="\system\themes\default\images\error.gif" width="16" height="16"></td>';
+			$strImageExists = '<td><img src="\system\themes\default\images\help.gif" width="16" height="16"></td>';
+		
+			$arrTemplates = $objCheck->checkTemplates();
+			
+			$strOutput.="TEMPLATES";
+			
+			
+			$strOutput.="<h3>ownTemplates</h3>";
+			
+			$strOutput.="<table>";
+			$strOutput.="<tr>";
+			$strOutput.='<th style="width:300px;">template</th>';
+			$strOutput.='<th style="width:100px;">tpl</th>';
+			$strOutput.='<th style="width:100px;">html5</th>';
+			$strOutput.='<th style="width:100px;">xhtml</th>';
+			$strOutput.="</tr>";
+			foreach ($arrTemplates['ownTemplates'] as $templateName=>$templateData)
+			{
+				$strOutput.="<tr>";
+				$strOutput.="<td>".$templateName;
+				
+				
+				
+				if (array_key_exists($templateName,$arrTemplates['database']))
+				{
+					$strOutput.="<ul><li>Database</li><ul>";
+					
+					foreach ($arrTemplates['database'][$templateName] as $keyDBTemplate=>$strDBTemplate)
+					{
+						$strOutput.=sprintf("<li><pre>%s</pre></li>",$keyDBTemplate);
+						$strOutput.="<ul>";
+						
+						foreach ($strDBTemplate as $id=>$bla)
+						{
+						
+							if (array_key_exists($keyDBTemplate,$arrBELinks))
+							{
+								$strLink = sprintf($arrBELinks[$keyDBTemplate],$id);
+								$strOutput.=sprintf('<li>%s <a href="%s"><img src="\system\themes\default\images\edit.gif"></a></li>',$id,$strLink);
+							}
+							else
+							{
+								$strOutput.=sprintf('<li>%s</li>',$id);
+							}
+						}
+						
+						$strOutput.="</ul>";
+					}
+					
+					$strOutput.="</ul></ul>";
+				}
+				
+				$strOutput.="</td>";
+				
+				$strOutput.=array_key_exists("tpl",$templateData) ? $strImageExists : $strImageNonExist;
+				$strOutput.=array_key_exists("html5",$templateData) ? $strImageExists : $strImageNonExist;
+				$strOutput.=array_key_exists("xhtml",$templateData) ? $strImageExists : $strImageNonExist;
+				
+				$strOutput.="</tr>";	
+			}
+			
+			$strOutput.="</table>";
+		
+			$strOutput.="<h3>Module templates</h3>";
+			
+			$strOutput.='
+			<style type="text/css">
+<!--
+			tr:nth-child(odd) {
+  background-color: #eeeeee;
+}
+-->
+</style>  ';
+			
+			$strOutput.="<table>";
+			$strOutput.="<tr>";
+			$strOutput.='<th style="width:300px;">template</th>';
+			$strOutput.='<th style="width:100px;">tpl</th>';
+			$strOutput.='<th style="width:100px;">html5</th>';
+			$strOutput.='<th style="width:100px;">xhtml</th>';
+			$strOutput.="</tr>";
+			foreach ($arrTemplates['moduleTemplates'] as $templateName=>$templateData)
+			{
+			
+				$strOutput.="<tr>";
+				$strOutput.="<td><pre>".$templateName.'</pre>';
+				
+				
+				if (array_key_exists($templateName,$arrTemplates['database']))
+				{
+					$strOutput.="<ul><li>Database</li><ul>";
+					
+					foreach ($arrTemplates['database'][$templateName] as $keyDBTemplate=>$strDBTemplate)
+					{
+						$strOutput.=sprintf("<li><pre>%s</pre></li>",$keyDBTemplate);
+						$strOutput.="<ul>";
+						
+						foreach ($strDBTemplate as $id=>$bla)
+						{
+						
+							if (array_key_exists($keyDBTemplate,$arrBELinks))
+							{
+								$strLink = sprintf($arrBELinks[$keyDBTemplate],$id);
+								$strOutput.=sprintf('<li>%s <a href="%s"><img src="\system\themes\default\images\edit.gif"></a></li>',$id,$strLink);
+							}
+							else
+							{
+								$strOutput.=sprintf('<li>%s</li>',$id);
+							}
+						}
+						
+						$strOutput.="</ul>";
+					}
+					
+					$strOutput.="</ul></ul>";
+				}
+				
+				$strOutput.="</td>";
+				$strOutput.=array_key_exists("tpl",$templateData) ? $strImageExists : $strImageNonExist;
+				$strOutput.=array_key_exists("html5",$templateData) ? $strImageExists : $strImageNonExist;
+				$strOutput.=array_key_exists("xhtml",$templateData) ? $strImageExists : $strImageNonExist;
+				
+				$strOutput.="</tr>";	
+			}
+			
+			$strOutput.="</table>";
+		
+		
+		
+		}
+		
 		
 		if (count($arrCheckModules)>0)
 		{
