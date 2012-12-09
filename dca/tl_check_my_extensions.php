@@ -100,7 +100,7 @@ class tl_check_my_extensions extends Backend
 		
 		$arrCheckModules = $sessionData['checkmyextensions']['checkModule'];
 		
-		if (in_array("TEMPLATES", $sessionData['checkmyextensions']["checkTypes"]))
+		if ((is_array($sessionData['checkmyextensions']["checkTypes"])) && (in_array("TEMPLATES", $sessionData['checkmyextensions']["checkTypes"])))
 		{
 		
 		
@@ -112,8 +112,8 @@ class tl_check_my_extensions extends Backend
 				
 			);
 		
-			$strImageNonExist = '<td><img src="\system\themes\default\images\error.gif" width="16" height="16"></td>';
-			$strImageExists = '<td><img src="\system\themes\default\images\help.gif" width="16" height="16"></td>';
+			$strImageNonExist = '<td><img src="/system/themes/default/images/error.gif" width="16" height="16"></td>';
+			$strImageExists = '<td><img src="/system/themes/default/images/help.gif" width="16" height="16"></td>';
 		
 			$arrTemplates = $objCheck->checkTemplates();
 			
@@ -129,49 +129,53 @@ class tl_check_my_extensions extends Backend
 			$strOutput.='<th style="width:100px;">html5</th>';
 			$strOutput.='<th style="width:100px;">xhtml</th>';
 			$strOutput.="</tr>";
-			foreach ($arrTemplates['ownTemplates'] as $templateName=>$templateData)
+			
+			if (is_array($arrTemplates['ownTemplates']))
 			{
-				$strOutput.="<tr>";
-				$strOutput.="<td>".$templateName;
-				
-				
-				
-				if (array_key_exists($templateName,$arrTemplates['database']))
+				foreach ($arrTemplates['ownTemplates'] as $templateName=>$templateData)
 				{
-					$strOutput.="<ul><li>Database</li><ul>";
+					$strOutput.="<tr>";
+					$strOutput.="<td>".$templateName;
 					
-					foreach ($arrTemplates['database'][$templateName] as $keyDBTemplate=>$strDBTemplate)
+					
+					
+					if (array_key_exists($templateName,$arrTemplates['database']))
 					{
-						$strOutput.=sprintf("<li><pre>%s</pre></li>",$keyDBTemplate);
-						$strOutput.="<ul>";
+						$strOutput.="<ul><li>Database</li><ul>";
 						
-						foreach ($strDBTemplate as $id=>$bla)
+						foreach ($arrTemplates['database'][$templateName] as $keyDBTemplate=>$strDBTemplate)
 						{
-						
-							if (array_key_exists($keyDBTemplate,$arrBELinks))
+							$strOutput.=sprintf("<li><pre>%s</pre></li>",$keyDBTemplate);
+							$strOutput.="<ul>";
+							
+							foreach ($strDBTemplate as $id=>$bla)
 							{
-								$strLink = sprintf($arrBELinks[$keyDBTemplate],$id);
-								$strOutput.=sprintf('<li>%s <a href="%s"><img src="\system\themes\default\images\edit.gif"></a></li>',$id,$strLink);
+							
+								if (array_key_exists($keyDBTemplate,$arrBELinks))
+								{
+									$strLink = sprintf($arrBELinks[$keyDBTemplate],$id);
+									$strOutput.=sprintf('<li>%s <a href="%s"><img src="/system/themes/default/images/edit.gif"></a></li>',$id,$strLink);
+								}
+								else
+								{
+									$strOutput.=sprintf('<li>%s</li>',$id);
+								}
 							}
-							else
-							{
-								$strOutput.=sprintf('<li>%s</li>',$id);
-							}
+							
+							$strOutput.="</ul>";
 						}
 						
-						$strOutput.="</ul>";
+						$strOutput.="</ul></ul>";
 					}
 					
-					$strOutput.="</ul></ul>";
+					$strOutput.="</td>";
+					
+					$strOutput.=array_key_exists("tpl",$templateData) ? $strImageExists : $strImageNonExist;
+					$strOutput.=array_key_exists("html5",$templateData) ? $strImageExists : $strImageNonExist;
+					$strOutput.=array_key_exists("xhtml",$templateData) ? $strImageExists : $strImageNonExist;
+					
+					$strOutput.="</tr>";	
 				}
-				
-				$strOutput.="</td>";
-				
-				$strOutput.=array_key_exists("tpl",$templateData) ? $strImageExists : $strImageNonExist;
-				$strOutput.=array_key_exists("html5",$templateData) ? $strImageExists : $strImageNonExist;
-				$strOutput.=array_key_exists("xhtml",$templateData) ? $strImageExists : $strImageNonExist;
-				
-				$strOutput.="</tr>";	
 			}
 			
 			$strOutput.="</table>";
@@ -216,7 +220,7 @@ class tl_check_my_extensions extends Backend
 							if (array_key_exists($keyDBTemplate,$arrBELinks))
 							{
 								$strLink = sprintf($arrBELinks[$keyDBTemplate],$id);
-								$strOutput.=sprintf('<li>%s <a href="%s"><img src="\system\themes\default\images\edit.gif"></a></li>',$id,$strLink);
+								$strOutput.=sprintf('<li>%s <a href="%s"><img src="/system/themes/default/images/edit.gif"></a></li>',$id,$strLink);
 							}
 							else
 							{
@@ -298,7 +302,7 @@ class tl_check_my_extensions extends Backend
 							while ($objPageType ->next())
 							{
 								$strOutput .=  sprintf("<li>Link to ID %s ::  %s",$objPageType ->id,$objPageType ->title);
-								$strOutput .= sprintf('<a href="contao/main.php?do=page&act=edit&id=%s"><img src="\system\themes\default\images\edit.gif"></a>',$objCEUsed ->id);
+								$strOutput .= sprintf('<a href="contao/main.php?do=page&act=edit&id=%s"><img src="/system/themes/default/images/edit.gif"></a>',$objCEUsed ->id);
 								$strOutput .= '</li>';
 							}
 							
@@ -335,7 +339,7 @@ class tl_check_my_extensions extends Backend
 							while ($objCEUsed ->next())
 							{
 								$strOutput .=  sprintf("<li>Link to ID %s ::  %s",$objCEUsed ->id,$objCEUsed ->name);
-								$strOutput .= sprintf('<a href="contao/main.php?do=themes&table=tl_module&act=edit&id=%s"><img src="\system\themes\default\images\edit.gif"></a>',$objCEUsed ->id);
+								$strOutput .= sprintf('<a href="contao/main.php?do=themes&table=tl_module&act=edit&id=%s"><img src="/system/themes/default/images/edit.gif"></a>',$objCEUsed ->id);
 								$strOutput .= '</li>';
 							}
 							
@@ -368,7 +372,7 @@ class tl_check_my_extensions extends Backend
 								$arrHeadline = deserialize($objCEUsed ->headline);
 								if ($arrHeadline['value'])
 									$strOutput .=  sprintf("<br>Headline : %s",$arrHeadline['value']);
-								$strOutput .= sprintf('<a href="contao/main.php?do=article&table=tl_content&act=edit&id=%s"><img src="\system\themes\default\images\edit.gif"></a>',$objCEUsed ->id);
+								$strOutput .= sprintf('<a href="contao/main.php?do=article&table=tl_content&act=edit&id=%s"><img src="/system/themes/default/images/edit.gif"></a>',$objCEUsed ->id);
 								$strOutput .= '</li>';
 							}
 							
